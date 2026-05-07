@@ -3,13 +3,13 @@ package com.gozenko.TodoList.controllers;
 import com.gozenko.TodoList.DTO.UserRequest;
 import com.gozenko.TodoList.DTO.UserResponse;
 import com.gozenko.TodoList.client.DataClient;
+import com.gozenko.TodoList.service.UserKafkaService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,15 +24,16 @@ public class UserController {
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @Autowired
-    private KafkaTemplate<String, UserRequest> kafkaTemplate;
+    private UserKafkaService userKafkaService;
     @Autowired
     private DataClient dataClient;
 
     @PostMapping("/create")
     @Operation(summary = "создать пользователя")
     public ResponseEntity<?> createUser(@RequestBody UserRequest userReq){
+        logger.info("Input User Request-{}", userReq);
         try {
-            kafkaTemplate.send("user-topic", userReq);
+            userKafkaService.sendUser(userReq);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body("User created");
         } catch (Exception e) {

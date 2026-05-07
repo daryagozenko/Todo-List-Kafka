@@ -3,13 +3,13 @@ package com.gozenko.TodoList.controllers;
 import com.gozenko.TodoList.DTO.TaskRequest;
 import com.gozenko.TodoList.DTO.TaskResponse;
 import com.gozenko.TodoList.client.DataClient;
+import com.gozenko.TodoList.service.TaskKafkaService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,7 +26,7 @@ public class TaskController {
     private static final Logger logger = LoggerFactory.getLogger(TaskController.class);
 
     @Autowired
-    private KafkaTemplate<String, TaskRequest> kafkaTemplate;
+    private TaskKafkaService taskKafkaService;
     @Autowired
     private DataClient dataClient;
 
@@ -35,7 +35,7 @@ public class TaskController {
     public ResponseEntity<?> createTask(@RequestBody TaskRequest taskReq) {
         logger.info("Input task request-{}",taskReq);
         try {
-            kafkaTemplate.send("task-topic", taskReq);
+            taskKafkaService.sendTask(taskReq);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body("Task created");
         } catch (Exception e) {
